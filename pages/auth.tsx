@@ -5,38 +5,52 @@ import axios from "axios";
 import { signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { useRouter } from "next/router";
 
 export default function Auth() {
+  const router = useRouter();
+
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const [isLogin, setIsLogin] = useState<boolean>(true);
 
-  const handleLogin = useCallback(async () => {
-    try {
-      await signIn("credentials", {
-        email,
-        password,
-        callbackUrl: "/profiles",
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  }, [email, password]);
+  const handleLogin = useCallback(
+    async (e: React.MouseEvent<HTMLElement>) => {
+      e.preventDefault();
+      try {
+        await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+          callbackUrl: "/",
+        });
 
-  const handleRegister = useCallback(async () => {
-    try {
-      await axios.post("/api/register", {
-        email,
-        username,
-        password,
-      });
-      handleLogin();
-    } catch (e) {
-      console.error(e);
-    }
-  }, [email, username, password, handleLogin]);
+        router.push("/profiles", undefined, { shallow: true });
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [email, password, router]
+  );
+
+  const handleRegister = useCallback(
+    async (e: React.MouseEvent<HTMLElement>) => {
+      e.preventDefault();
+      try {
+        await axios.post("/api/register", {
+          email,
+          username,
+          password,
+        });
+        handleLogin(e);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [email, username, password, handleLogin]
+  );
 
   return (
     <main className="relative h-full w-full bg-[url('/images/hero.jpg')] bg-no-repeat bg-center bg-fixed bg-cover">
